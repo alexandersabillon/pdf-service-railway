@@ -6,7 +6,7 @@ app.use(express.json({ limit: '20mb' }));
 
 app.post('/generate-pdf', async (req, res) => {
   try {
-    const { html, filename, margin } = req.body;
+    const { html, filename } = req.body;
 
     if (!html) {
       return res.status(400).json({ error: 'HTML is required' });
@@ -23,12 +23,10 @@ app.post('/generate-pdf', async (req, res) => {
       waitUntil: 'networkidle0'
     });
 
-    await page.evaluateHandle('document.fonts.ready');
-
     const pdfBuffer = await page.pdf({
       format: 'A4',
       printBackground: true,
-      margin: margin || {
+      margin: {
         top: '10px',
         bottom: '10px',
         left: '10px',
