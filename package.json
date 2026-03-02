@@ -1,0 +1,17 @@
+{
+  "name": "pdf-service",
+  "version": "1.0.0",
+  "description": "PDF generation service with Puppeteer",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "puppeteer": "^22.8.2"
+  }
+}
