@@ -42,7 +42,7 @@ app.post('/generate-pdf', async (req, res) => {
             printBackground: true,
             margin: {
                 top: '10px',
-                bottom: showFooter ? '80px' : '10px',
+                bottom: showFooter ? '100px' : '10px',
                 left: '10px',
                 right: '10px'
             },
@@ -51,7 +51,6 @@ app.post('/generate-pdf', async (req, res) => {
             footerTemplate: showFooter ? `
                 <div style="
                     width: 100%;
-                    height: 20px;
                     font-size: 10px;
                     font-family: Arial, sans-serif;
                     padding: 0 20px;
@@ -59,6 +58,8 @@ app.post('/generate-pdf', async (req, res) => {
                     justify-content: space-between;
                     align-items: center;
                     box-sizing: border-box;
+                    position: absolute;
+                    bottom: 20px;
                 ">
                     <span style="color: #555;">${documentId || ''}</span>
                     <span style="color: #555;">
