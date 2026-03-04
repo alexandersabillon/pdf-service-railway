@@ -42,7 +42,7 @@ app.post('/generate-pdf', async (req, res) => {
             printBackground: true,
             margin: {
                 top: '10px',
-                bottom: showFooter ? '100px' : '10px',
+                bottom: showFooter ? '40px' : '10px',
                 left: '10px',
                 right: '10px'
             },
