@@ -42,7 +42,7 @@ app.post('/generate-pdf', async (req, res) => {
             printBackground: true,
             margin: {
                 top: '10px',
-                bottom: showFooter ? '40px' : '10px',  // ✅ solo aumenta margen si hay footer
+                bottom: showFooter ? '60px' : '10px',  // ✅ solo aumenta margen si hay footer
                 left: '10px',
                 right: '10px'
             },
