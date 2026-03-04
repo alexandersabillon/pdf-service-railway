@@ -25,7 +25,8 @@ async function getBrowser() {
 
 app.post('/generate-pdf', async (req, res) => {
     try {
-        const { html, filename } = req.body;
+        //const { html, filename } = req.body;
+        const { html, filename, documentId, showFooter } = req.body;
 
         if (!html) {
             return res.status(400).json({ error: 'HTML is required' });
@@ -39,7 +40,31 @@ app.post('/generate-pdf', async (req, res) => {
         const pdfBuffer = await page.pdf({
             format: 'A4',
             printBackground: true,
-            margin: { top: '10px', bottom: '10px', left: '10px', right: '10px' }
+            margin: {
+                top: '10px',
+                bottom: showFooter ? '40px' : '10px',  // ✅ solo aumenta margen si hay footer
+                left: '10px',
+                right: '10px'
+            },
+            displayHeaderFooter: showFooter,  // ✅ solo muestra si se requiere
+            headerTemplate: '<span></span>',
+            footerTemplate: showFooter ? `
+                <div style="
+                    width: 100%;
+                    font-size: 10px;
+                    font-family: Arial, sans-serif;
+                    padding: 0 20px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    box-sizing: border-box;
+                ">
+                    <span style="color: #555;">${documentId || ''}</span>
+                    <span style="color: #555;">
+                        Página <span class="pageNumber"></span> de <span class="totalPages"></span>
+                    </span>
+                </div>
+            ` : '<span></span>'
         });
 
         await page.close(); // ✅ cierra solo la página, no el browser
