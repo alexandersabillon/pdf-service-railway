@@ -49,22 +49,23 @@ app.post('/generate-pdf', async (req, res) => {
             displayHeaderFooter: showFooter,  // ✅ solo muestra si se requiere
             headerTemplate: '<span></span>',
             footerTemplate: showFooter ? `
-                <div style="
-                    width: 100%;
-                    font-size: 10px;
-                    font-family: Arial, sans-serif;
-                    padding: 0 20px;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    box-sizing: border-box;
-                ">
-                    <span style="color: #555;">${documentId || ''}</span>
-                    <span style="color: #555;">
-                        Página <span class="pageNumber"></span> de <span class="totalPages"></span>
-                    </span>
-                </div>
-            ` : '<span></span>'
+              <div style="
+                  width: 100%;
+                  height: 40px;
+                  font-size: 10px;
+                  font-family: Arial, sans-serif;
+                  padding: 0 20px;
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  box-sizing: border-box;
+              ">
+                  <span style="color: #555;">${documentId || ''}</span>
+                  <span style="color: #555;">
+                      Página <span class="pageNumber"></span> de <span class="totalPages"></span>
+                  </span>
+              </div>
+          ` : '<span></span>'
         });
 
         await page.close(); // ✅ cierra solo la página, no el browser
