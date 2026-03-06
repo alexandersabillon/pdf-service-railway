@@ -9,9 +9,16 @@ const queue = [];
 let activeWorkers = 0;
 const MAX_WORKERS = 3; // máximo de PDFs simultáneos
 
+let browserFailCount = 0;
+const MAX_BROWSER_FAILS = 3; // reiniciar proceso después de 3 fallos seguidos
+
+
 async function getBrowser() {
     try {
-        if (browser && browser.connected) return browser;
+        if (browser && browser.connected) {
+            browserFailCount = 0; // resetear contador si está bien
+            return browser;
+        }
         
         if (browser) {
             await browser.close().catch(() => {});
@@ -35,12 +42,34 @@ async function getBrowser() {
             browser = null;
         });
 
+        browserFailCount = 0; // resetear contador si lanzó bien
         return browser;
+
     } catch (error) {
         browser = null;
+        browserFailCount++;
+        console.error(`Browser falló. Intento ${browserFailCount} de ${MAX_BROWSER_FAILS}`);
+
+        // ✅ Si falla muchas veces seguidas, matar el proceso para que Railway lo reinicie
+        if (browserFailCount >= MAX_BROWSER_FAILS) {
+            console.error('Demasiados fallos, reiniciando servicio...');
+            process.exit(1); // Railway detecta esto y reinicia automáticamente
+        }
+
         throw error;
     }
 }
+
+// ✅ Reiniciar el browser cada 30 minutos para liberar memoria
+const BROWSER_RESTART_INTERVAL = 30 * 60 * 1000; // 30 minutos
+
+setInterval(async () => {
+    if (activeWorkers === 0 && browser) {
+        console.log('Reinicio programado del browser para liberar memoria...');
+        await browser.close().catch(() => {});
+        browser = null;
+    }
+}, BROWSER_RESTART_INTERVAL);
 
 async function processQueue() {
     // Si alcanzó el máximo de workers o no hay requests, salir
@@ -101,9 +130,18 @@ async function processQueue() {
     } catch (error) {
         console.error('Error generating PDF:', error);
         if (page) await page.close().catch(() => {});
+        
+        // ✅ contar fallo y verificar si debe reiniciar
         browser = null;
-        res.status(500).json({ error: 'Failed to generate PDF', detail: error.message });
+        browserFailCount++;
+        console.error(`Fallo en processQueue. Contador: ${browserFailCount} de ${MAX_BROWSER_FAILS}`);
+        
+        if (browserFailCount >= MAX_BROWSER_FAILS) {
+            console.error('Demasiados fallos en processQueue, reiniciando servicio...');
+            process.exit(1);
+        }
 
+        res.status(500).json({ error: 'Failed to generate PDF', detail: error.message });
     } finally {
         activeWorkers--;
         console.log(`PDF completado. Workers activos: ${activeWorkers}, En cola: ${queue.length}`);
