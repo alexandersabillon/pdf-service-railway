@@ -81,7 +81,7 @@ async function processQueue() {
 
     let page = null;
     try {
-        const { html, filename, documentId, showFooter, format, landscape } = req.body;
+        const { html, filename, documentId, showFooter } = req.body;
 
         const browserInstance = await getBrowser();
         page = await browserInstance.newPage();
@@ -89,8 +89,7 @@ async function processQueue() {
         await page.setContent(html, { waitUntil: 'networkidle0', timeout: 30000 });
 
         const pdfBuffer = await page.pdf({
-            format: format || 'A4',
-            landscape: landscape || false,
+            format: 'A4',
             printBackground: true,
             margin: {
                 top: '0px',
