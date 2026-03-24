@@ -1,5 +1,6 @@
 import express from 'express';
 import puppeteer from 'puppeteer';
+import process from 'process';
 
 const app = express();
 app.use(express.json({ limit: '20mb' }));
@@ -60,8 +61,8 @@ async function getBrowser() {
     }
 }
 
-// ✅ Reiniciar el browser cada 30 minutos para liberar memoria
-const BROWSER_RESTART_INTERVAL = 30 * 60 * 1000; // 30 minutos
+// ✅ Reiniciar el browser cada 15 minutos para liberar memoria
+const BROWSER_RESTART_INTERVAL = 15 * 60 * 1000; // 15 minutos
 
 setInterval(async () => {
     if (activeWorkers === 0 && browser) {
@@ -70,6 +71,24 @@ setInterval(async () => {
         browser = null;
     }
 }, BROWSER_RESTART_INTERVAL);
+
+// Monitorear memoria cada 5 minutos
+setInterval(() => {
+    const memUsage = process.memoryUsage().rss / 1024 / 1024; // MB
+    console.log(`Memoria actual: ${memUsage.toFixed(2)} MB`);
+    
+    if (memUsage > 600 && activeWorkers === 0 && browser) {
+        console.log('Memoria alta, reiniciando browser...');
+        browser.close().catch(() => {});
+        browser = null;
+    }
+    
+    // Si supera 750MB, reiniciar el proceso completo
+    if (memUsage > 750) {
+        console.error('Memoria crítica, reiniciando servicio...');
+        process.exit(1);
+    }
+}, 5 * 60 * 1000); // cada 5 minutos
 
 async function processQueue() {
     // Si alcanzó el máximo de workers o no hay requests, salir
@@ -81,7 +100,7 @@ async function processQueue() {
 
     let page = null;
     try {
-        const { html, filename, documentId, showFooter } = req.body;
+        const { html, filename, documentId, showFooter, format, landscape } = req.body;
 
         const browserInstance = await getBrowser();
         page = await browserInstance.newPage();
@@ -89,7 +108,8 @@ async function processQueue() {
         await page.setContent(html, { waitUntil: 'networkidle0', timeout: 30000 });
 
         const pdfBuffer = await page.pdf({
-            format: 'A4',
+            format: format || 'A4',
+            landscape: landscape || false,
             printBackground: true,
             margin: {
                 top: '0px',
